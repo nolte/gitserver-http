@@ -56,7 +56,7 @@ initialize_services() {
 
 initialize_initial_repositories() {
   cd $GIT_INITIAL_ROOT
-  for dir in $(find . -name "*" -type d -maxdepth 1 -mindepth 1); do
+  for dir in $(find . -maxdepth 1 -mindepth 1 -name "*" -type d); do
     echo "Initializing repository $dir"
     init_and_commit $dir
   done

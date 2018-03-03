@@ -1,0 +1,93 @@
+- hosts: localhost
+  vars:
+    target_dir: /tmp/git-repo
+    git_backend_port_http: 3333
+    docker_container_name: testGitHttpBackend
+    docker_image_name: githttpbackend
+  tasks:
+  - name: "remove Git Repos basedir at {{target_dir}} if  exist"
+    file:
+      path: "{{target_dir}}"
+      state: absent
+
+
+  - name: "Create Git Repos basedir at {{target_dir}} if not exist"
+    file:
+      path: "{{target_dir}}"
+      state: directory
+
+
+  - name: build the docker buildcontainer
+    docker_image:
+      name: "{{docker_image_name}}"
+      state: present
+      path: "{{playbook_dir}}/.."
+      force: yes
+
+
+  - name: start git http backend
+    docker_container:
+      name: "{{docker_container_name}}"
+      image: "{{docker_image_name}}"
+      state: started
+      recreate: yes
+      command:
+        - "-init"
+      volumes:
+        - "{{playbook_dir}}/../example/initial:/var/lib/initial:ro"
+      published_ports:
+        - "{{git_backend_port_http}}:80"
+    notify:
+    - stop git backend
+
+  - name: wait till git backend is started
+    uri:
+      url: "http://localhost:{{git_backend_port_http}}/ping"
+      method: GET
+    register: result
+    until: result.status == 200
+    retries: 5
+    delay: 10
+
+  - name: "checkout project from gitbackend"
+    git:
+      repo: "http://localhost:{{git_backend_port_http}}/myrepo.git"
+      dest: "{{target_dir}}/myrepo"
+
+
+  - name: Check that the checkout file exists
+    stat:
+      path: "{{target_dir}}/myrepo/myfile.txt"
+    register: stat_result
+
+  - name: fail when checkout faild
+    fail: msg="the checkout failed"
+    when: stat_result.stat.exists == false
+
+  - name: change content from checkout file
+    blockinfile:
+      path: "{{target_dir}}/myrepo/myfile.txt"
+      block: |
+        simple test
+
+  - name: add changes
+    command: git add .
+    args:
+      chdir: "{{target_dir}}/myrepo"
+
+  - name: commit
+    command: git commit -m "test commit"
+    args:
+      chdir: "{{target_dir}}/myrepo"
+
+  - name: push
+    command: git push origin master
+    args:
+      chdir: "{{target_dir}}/myrepo"
+
+
+  handlers:
+    - name: stop git backend
+      docker_container:
+        name: "{{docker_container_name}}"
+        state: absent
