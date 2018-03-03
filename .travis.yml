@@ -1,21 +1,30 @@
 sudo: required
-language: generic
-
+dist: trusty
+language: python
+python:
+  - "2.7"
 services:
   - docker
-
 env:
-  - DOCKER_OPTS="-H tcp://0.0.0.0:2375"
+  global:
+    - PATH="/usr/bin:$PATH"
 
 before_install:
-  - ./.travis/setup.sh
+    # Ansible doesn't play well with virtualenv
+  - deactivate
+  - sudo apt-get update -qq
+  - sudo apt-get install docker-ce
 
 install:
-  - make image
+  - sudo pip install docker-py
+    # software-properties-common for ubuntu 14.04
+    # python-software-properties for ubuntu 12.04
+  - sudo apt-get install -y sshpass software-properties-common python-software-properties
+  - sudo apt-add-repository -y ppa:ansible/ansible
+  - sudo apt-get update -qq
+  - sudo apt-get install -y ansible
+  - sudo rm /usr/bin/python && sudo ln -s /usr/bin/python2.7 /usr/bin/python
+
 
 script:
-  - make test
-
-notifications:
-  email: false
-
+  - ansible-playbook ansible-test-suite.yml
