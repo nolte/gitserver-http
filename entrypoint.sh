@@ -65,21 +65,26 @@ initialize_initial_repositories() {
 init_and_commit() {
   local dir=$1
   local tmp_dir=$(mktemp -d)
+  echo "test_init_repo "
 
-  cp -r $dir/* $tmp_dir
-  pushd . >/dev/null
-  cd $tmp_dir
+  if [[ -d "$dir/.git" ]]; then
+    echo "some exising git repo"
+    pushd . >/dev/null
+    git clone --bare $dir $GIT_PROJECT_ROOT/${dir}.git &>/dev/null
+    popd >/dev/null
+  else
+    echo "simple file import"
+    cp -r $dir/* $tmp_dir
+    pushd . >/dev/null
 
-  if [[ -d "./.git" ]]; then
-    rm -rf ./.git
+    cd $tmp_dir
+    git init &>/dev/null
+    git add --all . &>/dev/null
+    git commit -m "first commit" &>/dev/null
+    git clone --bare $tmp_dir $GIT_PROJECT_ROOT/${dir}.git &>/dev/null
+    popd >/dev/null
   fi
 
-  git init &>/dev/null
-  git add --all . &>/dev/null
-  git commit -m "first commit" &>/dev/null
-  git clone --bare $tmp_dir $GIT_PROJECT_ROOT/${dir}.git &>/dev/null
-
-  popd >/dev/null
 }
 
 main "$@"
