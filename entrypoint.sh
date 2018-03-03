@@ -11,7 +11,7 @@
 #
 #   -init     turns directories under `/var/lib/initial`
 #             into bare repositories at `/var/lib/git`
-# 
+#
 
 set -o errexit
 
@@ -38,10 +38,10 @@ main() {
 
 initialize_services() {
   # Check permissions on $GIT_PROJECT_ROOT
-  if [[ ! $(stat -c %A ${GIT_PROJECT_ROOT}) -eq "drwxr-xr-x" ]]; then
-    chown -R giti:git $GIT_PROJECT_ROOT
+  #if [[ ! $(stat -c %A ${GIT_PROJECT_ROOT}) -eq "drwxr-xr-x" ]]; then
+    chown -R git:git $GIT_PROJECT_ROOT
     chmod -R 775 $GIT_PROJECT_ROOT
-  fi
+  #fi
 
   /usr/bin/spawn-fcgi \
     -s $FCGISOCKET \
