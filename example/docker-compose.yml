@@ -1,8 +1,9 @@
 version: '3.2'
 services:
   gitserver:
-    image: 'cirocosta/gitserver-http'
-    command: 
+    build:
+      context: ../.
+    command:
       - '-init'
       - '-start'
     volumes:
