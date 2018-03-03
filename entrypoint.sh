@@ -76,6 +76,18 @@ init_and_commit() {
   git init &>/dev/null
   git add --all . &>/dev/null
   git commit -m "first commit" &>/dev/null
+
+
+  if [[ -d "$GIT_INITIAL_ROOT/${dir}/patchs" ]]; then
+    echo "import patch files"
+    for patchfile in $(find $GIT_INITIAL_ROOT/${dir}/patchs -name "*.patch" -type f); do
+      echo "Initializing patch $patchfile"
+      git apply $patchfile
+      git add --all . &>/dev/null
+      git commit -m "import patch $(basename "$patchfile")" &>/dev/null
+    done
+  fi
+
   git clone --bare $tmp_dir $GIT_PROJECT_ROOT/${dir}.git &>/dev/null
 
   popd >/dev/null
