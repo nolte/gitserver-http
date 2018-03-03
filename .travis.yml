@@ -27,4 +27,4 @@ install:
 
 
 script:
-  - ansible-playbook ansible-test-suite.yml
+  - ansible-playbook tests/ansible-test-suite.yml
