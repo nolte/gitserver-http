@@ -65,8 +65,7 @@ initialize_initial_repositories() {
 init_and_commit() {
   local dir=$1
   local tmp_dir=$(mktemp -d)
-
-  cp -r $dir/* $tmp_dir
+  cp -r $dir/data/* $tmp_dir
   pushd . >/dev/null
   cd $tmp_dir
 
