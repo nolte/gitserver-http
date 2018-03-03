@@ -1,0 +1,10 @@
+- hosts: localhost
+  vars:
+    docker_image_name: githttpbackend
+  tasks:
+  - name: build the docker buildcontainer
+    docker_image:
+      name: "{{docker_image_name}}"
+      state: present
+      path: "{{playbook_dir}}/.."
+      force: yes
