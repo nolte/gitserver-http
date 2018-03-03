@@ -2,6 +2,8 @@
   vars:
     target_dir: /tmp/git-repo
     git_backend_port_http: 3333
+    docker_container_name: testGitHttpBackend
+    docker_image_name: githttpbackend
   tasks:
   - name: "remove Git Repos basedir at {{target_dir}} if  exist"
     file:
@@ -17,22 +19,22 @@
 
   - name: build the docker buildcontainer
     docker_image:
-      name: githttpbackend
+      name: "{{docker_image_name}}"
       state: present
-      path: "{{playbook_dir}}"
+      path: "{{playbook_dir}}/.."
       force: yes
 
 
   - name: start git http backend
     docker_container:
-      name: testGitHttpBackend
-      image: githttpbackend
+      name: "{{docker_container_name}}"
+      image: "{{docker_image_name}}"
       state: started
       recreate: yes
       command:
         - "-init"
       volumes:
-        - "{{playbook_dir}}/example/initial:/var/lib/initial:ro"
+        - "{{playbook_dir}}/../example/initial:/var/lib/initial:ro"
       published_ports:
         - "{{git_backend_port_http}}:80"
     notify:
@@ -87,6 +89,5 @@
   handlers:
     - name: stop git backend
       docker_container:
-        name: testGitHttpBackend
-        image: githttpbackend
+        name: "{{docker_container_name}}"
         state: absent
